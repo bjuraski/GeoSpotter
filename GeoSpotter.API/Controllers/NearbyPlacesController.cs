@@ -14,14 +14,18 @@ public class NearbyPlacesController : ControllerBase
         _foursquareClient = foursquareClient;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetNearbyPlaces(double latitude, double longitude)
+    [HttpGet(Name = "GetNearbyPlaces")]
+    public async Task<IActionResult> GetNearbyPlaces(
+        double latitude,
+        double longitude,
+        string? categories = null,
+        string? searchTerm = null)
     {
-        var nearbyPlacesResult = await _foursquareClient.GetNearbyPlacesByCoordinates(latitude, longitude);
+        var nearbyPlacesResult = await _foursquareClient.GetNearbyPlacesByCoordinates(latitude, longitude, categories, searchTerm);
 
         if (nearbyPlacesResult.IsFailed)
         {
-            return BadRequest(nearbyPlacesResult.Errors);
+            return StatusCode(StatusCodes.Status500InternalServerError, nearbyPlacesResult.Errors);
         }
 
         return Ok(nearbyPlacesResult.Value);

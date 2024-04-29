@@ -1,4 +1,8 @@
 using GeoSpotter.API.Clients;
+using GeoSpotter.API.Data;
+using GeoSpotter.API.Persistence.Interfaces;
+using GeoSpotter.API.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +13,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IFoursquareClient, FoursquareClient>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration["ConnectionStrings:GeoSpotterConnection"]));
+builder.Services.AddScoped<ApplicationDbContextFactory>();
+
+builder.Services.AddScoped<IFoursquareClient, FoursquareClient>();
+builder.Services.AddScoped<IApiMessageRepository, ApiMessageRepository>();
+builder.Services.AddScoped<IFavouriteLocationRepository, FavouriteLocationRepository>();
 
 var app = builder.Build();
 
