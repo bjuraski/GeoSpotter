@@ -39,18 +39,18 @@ public class FavouriteLocationRepository : IFavouriteLocationRepository
     {
         await using var dbContext = _applicationDbContextFactory.CreateDbContext();
 
-        var favoritePlace = await dbContext
+        var existingFavouritePlace = await dbContext
             .FavouriteLocations
             .Where(l => l.UserId == favouriteLocationDTO.UserId
                 && l.Latitude == favouriteLocationDTO.Latitude
                 && l.Longitude == favouriteLocationDTO.Longitude)
             .SingleOrDefaultAsync();
 
-        if (favoritePlace is null)
+        if (existingFavouritePlace is null)
         {
             return (false, null);
         }
 
-        return (true, favoritePlace.Id);
+        return (true, existingFavouritePlace.Id);
     }
 }
