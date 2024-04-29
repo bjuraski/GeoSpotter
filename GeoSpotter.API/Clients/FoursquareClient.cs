@@ -31,25 +31,7 @@ public class FoursquareClient : IFoursquareClient
         string? categories = null,
         string? searchTerm = null)
     {
-        var request = new RestRequest("");
-
-        request.AddQueryParameter("ll", $"{latitude.ToString(CultureInfo.InvariantCulture)},{longitude.ToString(CultureInfo.InvariantCulture)}");
-        request.AddQueryParameter("radius", _configuration.GetValue<string>("Foursquare:SearchReadius"));
-
-        if (!string.IsNullOrEmpty(categories))
-        {
-            request.AddQueryParameter("categories", categories);
-
-        }
-
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            request.AddQueryParameter("query", searchTerm);
-        }
-
-        request.AddHeader("accept", "application/json");
-        request.AddHeader("Authorization", _configuration["FoursquareKeys:ApiKey"] ?? string.Empty);
-
+        var request = CreateRequest(latitude, longitude, categories, searchTerm);
         var response = await _client.GetAsync(request);
 
         if (response is null)
@@ -72,6 +54,33 @@ public class FoursquareClient : IFoursquareClient
         var nearbySearchResponse = JsonSerializer.Deserialize<FoursquareResponse>(response.Content);
 
         return Result.Ok(nearbySearchResponse!);
+    }
+
+    private RestRequest CreateRequest(
+        double latitude,
+        double longitude,
+        string? categories = null,
+        string? searchTerm = null)
+    {
+        var request = new RestRequest("");
+
+        request.AddQueryParameter("ll", $"{latitude.ToString(CultureInfo.InvariantCulture)},{longitude.ToString(CultureInfo.InvariantCulture)}");
+        request.AddQueryParameter("radius", _configuration.GetValue<string>("Foursquare:SearchRadius"));
+
+        if (!string.IsNullOrEmpty(categories))
+        {
+            request.AddQueryParameter("categories", categories);
+        }
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            request.AddQueryParameter("query", searchTerm);
+        }
+
+        request.AddHeader("accept", "application/json");
+        request.AddHeader("Authorization", _configuration["FoursquareKeys:ApiKey"] ?? string.Empty);
+
+        return request;
     }
 
     private async Task SaveApiMessageAsync(RestRequest request, string response)

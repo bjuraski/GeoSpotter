@@ -5,6 +5,4 @@ namespace GeoSpotter.API.Persistence.Interfaces;
 public interface IApiMessageRepository
 {
     Task AddApiMessageAsync(ApiMessage apiMessage);
-
-    Task<IList<ApiMessage>> GetApiMessagesAsync();
 }

@@ -1,7 +1,6 @@
 ﻿using GeoSpotter.API.Data;
 using GeoSpotter.API.Entities;
 using GeoSpotter.API.Persistence.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace GeoSpotter.API.Persistence.Repositories;
 
@@ -21,14 +20,5 @@ public class ApiMessageRepository : IApiMessageRepository
         await dbContext.ApiMessages.AddAsync(apiMessage);
 
         await dbContext.SaveChangesAsync();
-    }
-
-    public async Task<IList<ApiMessage>> GetApiMessagesAsync()
-    {
-        await using var dbContext = _applicationDbContextFactory.CreateDbContext();
-
-        return await dbContext
-            .ApiMessages
-            .ToListAsync();
     }
 }

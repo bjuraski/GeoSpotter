@@ -34,4 +34,23 @@ public class FavouriteLocationRepository : IFavouriteLocationRepository
 
         return Result.Fail("Error occured during Favourite Location save");
     }
+
+    public async Task<(bool IsExist, long? Id)> GetFavouriteLocationIdIfExistsAsync(FavouriteLocationDTO favouriteLocationDTO)
+    {
+        await using var dbContext = _applicationDbContextFactory.CreateDbContext();
+
+        var favoritePlace = await dbContext
+            .FavouriteLocations
+            .Where(l => l.UserId == favouriteLocationDTO.UserId
+                && l.Latitude == favouriteLocationDTO.Latitude
+                && l.Longitude == favouriteLocationDTO.Longitude)
+            .SingleOrDefaultAsync();
+
+        if (favoritePlace is null)
+        {
+            return (false, null);
+        }
+
+        return (true, favoritePlace.Id);
+    }
 }

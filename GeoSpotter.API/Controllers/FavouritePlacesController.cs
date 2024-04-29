@@ -16,8 +16,17 @@ public class FavouritePlacesController : ControllerBase
     }
 
     [HttpPost(Name = "SaveFavouriteLocation")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(FavouriteLocationDTO))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SaveFavouriteLocation(FavouriteLocationDTO favouriteLocationDTO)
     {
+        var (isExist, id) = await _favouriteLocationRepository.GetFavouriteLocationIdIfExistsAsync(favouriteLocationDTO);
+
+        if (isExist)
+        {
+            return CreatedAtAction(nameof(SaveFavouriteLocation), new { id }, favouriteLocationDTO);
+        }
+
         var result = await _favouriteLocationRepository.AddFavouriteLocationAsync(favouriteLocationDTO);
 
         if (result.IsFailed)

@@ -1,4 +1,5 @@
 ﻿using GeoSpotter.API.Clients;
+using GeoSpotter.API.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GeoSpotter.API.Controllers;
@@ -15,6 +16,8 @@ public class NearbyPlacesController : ControllerBase
     }
 
     [HttpGet(Name = "GetNearbyPlaces")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FoursquareResponse))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetNearbyPlaces(
         double latitude,
         double longitude,
