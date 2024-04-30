@@ -10,6 +10,8 @@ public class FavouritePlacesController : ControllerBase
 {
     private readonly IFavouriteLocationRepository _favouriteLocationRepository;
 
+    private static SemaphoreSlim _semaphore = new(1, 1);
+
     public FavouritePlacesController(IFavouriteLocationRepository favouriteLocationRepository)
     {
         _favouriteLocationRepository = favouriteLocationRepository;
@@ -20,20 +22,29 @@ public class FavouritePlacesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SaveFavouriteLocation(FavouriteLocationDTO favouriteLocationDTO)
     {
-        var (isExist, id) = await _favouriteLocationRepository.GetFavouriteLocationIdIfExistsAsync(favouriteLocationDTO);
+        await _semaphore.WaitAsync();
 
-        if (isExist)
+        try
         {
-            return CreatedAtAction(nameof(SaveFavouriteLocation), new { id }, favouriteLocationDTO);
+            var (isExist, id) = await _favouriteLocationRepository.GetFavouriteLocationIdIfExistsAsync(favouriteLocationDTO);
+
+            if (isExist)
+            {
+                return CreatedAtAction(nameof(SaveFavouriteLocation), new { id }, favouriteLocationDTO);
+            }
+
+            var result = await _favouriteLocationRepository.AddFavouriteLocationAsync(favouriteLocationDTO);
+
+            if (result.IsFailed)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            }
+
+            return CreatedAtAction(nameof(SaveFavouriteLocation), new { id = result.Value }, favouriteLocationDTO);
         }
-
-        var result = await _favouriteLocationRepository.AddFavouriteLocationAsync(favouriteLocationDTO);
-
-        if (result.IsFailed)
+        finally
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            _semaphore.Release();
         }
-
-        return CreatedAtAction(nameof(SaveFavouriteLocation), new { id = result.Value }, favouriteLocationDTO);
     }
 }

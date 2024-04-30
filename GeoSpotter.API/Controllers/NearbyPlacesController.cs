@@ -1,5 +1,6 @@
 ﻿using GeoSpotter.API.Clients;
 using GeoSpotter.API.Hubs;
+using GeoSpotter.Shared.Consts;
 using GeoSpotter.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -12,6 +13,8 @@ public class NearbyPlacesController : ControllerBase
 {
     private readonly IHubContext<NearbyPlacesHub> _hubContext;
     private readonly IFoursquareClient _foursquareClient;
+
+    private static SemaphoreSlim _semaphore = new(1, 1);
 
     public NearbyPlacesController(IHubContext<NearbyPlacesHub> hubContext, IFoursquareClient foursquareClient)
     {
@@ -28,23 +31,32 @@ public class NearbyPlacesController : ControllerBase
         string? categories = null,
         string? searchTerm = null)
     {
-        var requestParameter = new RequestParameter(latitude, longitude, categories, searchTerm);
+        await _semaphore.WaitAsync();
 
-        await _hubContext.Clients.All.SendAsync("ReceiveMessageRequest", requestParameter);
-
-        var nearbyPlacesResult = await _foursquareClient.GetNearbyPlacesByCoordinates(latitude, longitude, categories, searchTerm);
-
-        if (nearbyPlacesResult.IsFailed)
+        try
         {
-            var error = string.Join(", ", nearbyPlacesResult.Errors);
+            var requestParameter = new RequestParameter(latitude, longitude, categories, searchTerm);
 
-            await _hubContext.Clients.All.SendAsync("ReceiveMessageInvalidResponse", error);
+            await _hubContext.Clients.All.SendAsync(HubConsts.NearbyPlacesHub.ReceiveMessageRequest, requestParameter);
 
-            return StatusCode(StatusCodes.Status500InternalServerError, nearbyPlacesResult.Errors);
+            var nearbyPlacesResult = await _foursquareClient.GetNearbyPlacesByCoordinates(latitude, longitude, categories, searchTerm);
+
+            if (nearbyPlacesResult.IsFailed)
+            {
+                var error = string.Join(", ", nearbyPlacesResult.Errors);
+
+                await _hubContext.Clients.All.SendAsync(HubConsts.NearbyPlacesHub.ReceiveMessageInvalidResponse, error);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, nearbyPlacesResult.Errors);
+            }
+
+            await _hubContext.Clients.All.SendAsync(HubConsts.NearbyPlacesHub.ReceiveMessageValidResponse, nearbyPlacesResult.Value);
+
+            return Ok(nearbyPlacesResult.Value);
         }
-
-        await _hubContext.Clients.All.SendAsync("ReceiveMessageValidResponse", nearbyPlacesResult.Value);
-
-        return Ok(nearbyPlacesResult.Value);
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 }
