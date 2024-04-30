@@ -1,5 +1,5 @@
 ﻿using FluentResults;
-using GeoSpotter.API.Models;
+using GeoSpotter.Shared.Models;
 
 namespace GeoSpotter.API.Clients;
 

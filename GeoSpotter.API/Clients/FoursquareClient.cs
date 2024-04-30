@@ -1,7 +1,7 @@
 ﻿using FluentResults;
 using GeoSpotter.API.Entities;
-using GeoSpotter.API.Models;
 using GeoSpotter.API.Persistence.Interfaces;
+using GeoSpotter.Shared.Models;
 using RestSharp;
 using System.Globalization;
 using System.Text.Json;
@@ -65,7 +65,7 @@ public class FoursquareClient : IFoursquareClient
         var request = new RestRequest("");
 
         request.AddQueryParameter("ll", $"{latitude.ToString(CultureInfo.InvariantCulture)},{longitude.ToString(CultureInfo.InvariantCulture)}");
-        request.AddQueryParameter("radius", _configuration.GetValue<string>("Foursquare:SearchRadius"));
+        request.AddQueryParameter("radius", (_configuration.GetValue<int>("Foursquare:SearchReadius")).ToString());
 
         if (!string.IsNullOrEmpty(categories))
         {

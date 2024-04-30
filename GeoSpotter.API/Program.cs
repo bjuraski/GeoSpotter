@@ -1,5 +1,6 @@
 using GeoSpotter.API.Clients;
 using GeoSpotter.API.Data;
+using GeoSpotter.API.Hubs;
 using GeoSpotter.API.Persistence.Interfaces;
 using GeoSpotter.API.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ builder.Services.AddScoped<IFoursquareClient, FoursquareClient>();
 builder.Services.AddScoped<IApiMessageRepository, ApiMessageRepository>();
 builder.Services.AddScoped<IFavouriteLocationRepository, FavouriteLocationRepository>();
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -35,5 +38,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<NearbyPlacesHub>("/nearby-places-hub");
 
 app.Run();

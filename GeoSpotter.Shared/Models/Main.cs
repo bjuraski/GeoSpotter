@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace GeoSpotter.API.Models;
+namespace GeoSpotter.Shared.Models;
 
-public class Center
+public class Main
 {
     [JsonPropertyName("latitude")]
     public double Latitude { get; set; }

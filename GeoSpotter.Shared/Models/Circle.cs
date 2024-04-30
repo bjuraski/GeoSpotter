@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace GeoSpotter.API.Models;
+namespace GeoSpotter.Shared.Models;
 
 public class Circle
 {
