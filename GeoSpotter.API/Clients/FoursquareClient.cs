@@ -26,6 +26,7 @@ public class FoursquareClient : IFoursquareClient
     }
 
     public async Task<Result<FoursquareResponse>> GetNearbyPlacesByCoordinates(
+        long userId,
         double latitude,
         double longitude,
         string? categories = null,
@@ -49,7 +50,7 @@ public class FoursquareClient : IFoursquareClient
             return Result.Fail($"Failed to fetch nearby places. Response Content is empty");
         }
 
-        await SaveApiMessageAsync(request, response.Content);
+        await SaveApiMessageAsync(userId, request, response.Content);
 
         var nearbySearchResponse = JsonSerializer.Deserialize<FoursquareResponse>(response.Content);
 
@@ -83,10 +84,11 @@ public class FoursquareClient : IFoursquareClient
         return request;
     }
 
-    private async Task SaveApiMessageAsync(RestRequest request, string response)
+    private async Task SaveApiMessageAsync(long userId, RestRequest request, string response)
     {
         var apiMessage = new ApiMessage
         {
+            UserId = userId,
             RequestJson = JsonSerializer.Serialize(request),
             ResponseJson = response
         };

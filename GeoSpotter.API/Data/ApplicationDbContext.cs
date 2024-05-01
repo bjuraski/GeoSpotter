@@ -14,4 +14,17 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users { get; set; }
 
     public DbSet<FavouriteLocation> FavouriteLocations { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>()
+            .HasData(DatabaseSeed.GetUsers());
+
+        modelBuilder.Entity<ApiMessage>()
+            .HasOne(am => am.User)
+            .WithMany()
+            .HasForeignKey(am => am.UserId);
+    }
 }

@@ -1,8 +1,12 @@
 ﻿namespace GeoSpotter.API.Entities;
 
-public record ApiMessage
+public class ApiMessage
 {
     public long Id { get; set; }
+
+    public long UserId { get; set; }
+
+    public User? User { get; set; }
 
     public required string RequestJson { get; set; }
 

@@ -13,6 +13,7 @@ public static class CreateMessage
         Console.WriteLine($"""
 
             Received new Location Request:
+                User Id: {requestParameter.UserId}
                 Latitude: {requestParameter.Latitude}
                 Longitude: {requestParameter.Longitude}
                 Category Ids: {(categoryIds != null ? string.Join(", ", categoryIds) : string.Empty)}
@@ -51,11 +52,13 @@ public static class CreateMessage
 
                 """);
         }
+        else
+        {
+            Console.WriteLine("""
 
-        Console.WriteLine("""
-
-            Nearby Locations for request:
-            """);
+                Nearby Locations for request:
+                """);
+        }
 
 
         foreach (var nearbyLocation in nearbyLocations!)

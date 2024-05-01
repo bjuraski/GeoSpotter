@@ -6,6 +6,8 @@ public class FavouriteLocation
 
     public long UserId { get; set; }
 
+    public User? User { get; set; }
+
     public double Latitude { get; set; }
 
     public double Longitude { get; set; }

@@ -16,11 +16,13 @@ public class FavouriteLocationRepository : IFavouriteLocationRepository
         _applicationDbContextFactory = applicationDbContextFactory;
     }
 
-    public async Task<Result<long>> AddFavouriteLocationAsync(FavouriteLocationDTO favouriteLocationDTO)
+    public async Task<Result<long>> AddFavouriteLocationAsync(FavouriteLocationDTO favouriteLocationDTO, long userId)
     {
         await using var dbContext = _applicationDbContextFactory.CreateDbContext();
 
         var favouriteLocation = FavouriteLocationMapping.MapDTOToEntity(favouriteLocationDTO);
+
+        favouriteLocation.UserId = userId;
 
         var entry = dbContext.Entry(favouriteLocation);
         entry.State = EntityState.Added;

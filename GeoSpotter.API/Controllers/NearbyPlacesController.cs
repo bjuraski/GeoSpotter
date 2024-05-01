@@ -1,7 +1,9 @@
 ﻿using GeoSpotter.API.Clients;
+using GeoSpotter.API.Helpers;
 using GeoSpotter.API.Hubs;
 using GeoSpotter.Shared.Consts;
 using GeoSpotter.Shared.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -22,9 +24,11 @@ public class NearbyPlacesController : ControllerBase
         _foursquareClient = foursquareClient;
     }
 
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     [HttpGet(Name = "GetNearbyPlaces")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FoursquareResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FoursquareResponse))]
     public async Task<IActionResult> GetNearbyPlaces(
         double latitude,
         double longitude,
@@ -35,11 +39,18 @@ public class NearbyPlacesController : ControllerBase
 
         try
         {
-            var requestParameter = new RequestParameter(latitude, longitude, categories, searchTerm);
+            var userIdResult = UserHelper.GetParsedUserId(HttpContext);
+
+            if (userIdResult.IsFailed)
+            {
+                return BadRequest(string.Join(", ", userIdResult.Errors));
+            }
+
+            var requestParameter = new RequestParameter(userIdResult.Value, latitude, longitude, categories, searchTerm);
 
             await _hubContext.Clients.All.SendAsync(HubConsts.NearbyPlacesHub.ReceiveMessageRequest, requestParameter);
 
-            var nearbyPlacesResult = await _foursquareClient.GetNearbyPlacesByCoordinates(latitude, longitude, categories, searchTerm);
+            var nearbyPlacesResult = await _foursquareClient.GetNearbyPlacesByCoordinates(userIdResult.Value, latitude, longitude, categories, searchTerm);
 
             if (nearbyPlacesResult.IsFailed)
             {

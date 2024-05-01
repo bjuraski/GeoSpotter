@@ -1,5 +1,7 @@
 ﻿using GeoSpotter.API.DTOs;
+using GeoSpotter.API.Helpers;
 using GeoSpotter.API.Persistence.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GeoSpotter.API.Controllers;
@@ -17,9 +19,12 @@ public class FavouritePlacesController : ControllerBase
         _favouriteLocationRepository = favouriteLocationRepository;
     }
 
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     [HttpPost(Name = "SaveFavouriteLocation")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(FavouriteLocationDTO))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(FavouriteLocationDTO))]
     public async Task<IActionResult> SaveFavouriteLocation(FavouriteLocationDTO favouriteLocationDTO)
     {
         await _semaphore.WaitAsync();
@@ -33,7 +38,14 @@ public class FavouritePlacesController : ControllerBase
                 return CreatedAtAction(nameof(SaveFavouriteLocation), new { id }, favouriteLocationDTO);
             }
 
-            var result = await _favouriteLocationRepository.AddFavouriteLocationAsync(favouriteLocationDTO);
+            var userIdResult = UserHelper.GetParsedUserId(HttpContext);
+
+            if (userIdResult.IsFailed)
+            {
+                return BadRequest(string.Join(", ", userIdResult.Errors));
+            }
+
+            var result = await _favouriteLocationRepository.AddFavouriteLocationAsync(favouriteLocationDTO, userIdResult.Value);
 
             if (result.IsFailed)
             {
