@@ -9,16 +9,16 @@ namespace GeoSpotter.API.Persistence.Repositories;
 
 public class FavouriteLocationRepository : IFavouriteLocationRepository
 {
-    private readonly ApplicationDbContextFactory _applicationDbContextFactory;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-    public FavouriteLocationRepository(ApplicationDbContextFactory applicationDbContextFactory)
+    public FavouriteLocationRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
-        _applicationDbContextFactory = applicationDbContextFactory;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<Result<long>> AddFavouriteLocationAsync(FavouriteLocationDTO favouriteLocationDTO, long userId)
     {
-        await using var dbContext = _applicationDbContextFactory.CreateDbContext();
+        await using var dbContext = _dbContextFactory.CreateDbContext();
 
         var favouriteLocation = FavouriteLocationMapping.MapDTOToEntity(favouriteLocationDTO);
 
@@ -39,7 +39,7 @@ public class FavouriteLocationRepository : IFavouriteLocationRepository
 
     public async Task<(bool IsExist, long? Id)> GetFavouriteLocationIdIfExistsAsync(FavouriteLocationDTO favouriteLocationDTO)
     {
-        await using var dbContext = _applicationDbContextFactory.CreateDbContext();
+        await using var dbContext = _dbContextFactory.CreateDbContext();
 
         var existingFavouritePlace = await dbContext
             .FavouriteLocations

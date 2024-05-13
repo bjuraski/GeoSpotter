@@ -8,16 +8,16 @@ namespace GeoSpotter.API.Persistence.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly ApplicationDbContextFactory _applicationDbContextFactory;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-    public UserRepository(ApplicationDbContextFactory applicationDbContextFactory)
+    public UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
-        _applicationDbContextFactory = applicationDbContextFactory;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<Result<User>> TryGetUserByUsernameAndPassword(string userName, string password)
     {
-        await using var dbContext = _applicationDbContextFactory.CreateDbContext();
+        await using var dbContext = _dbContextFactory.CreateDbContext();
 
         var user = await dbContext
             .Users
